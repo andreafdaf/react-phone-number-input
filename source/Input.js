@@ -198,7 +198,9 @@ export default class Input extends Component
 			country_phone_code_to_countries : PropTypes.object.isRequired,
 			countries : PropTypes.object.isRequired
 		})
-		.isRequired
+		.isRequired,
+
+		showCountryPrefixes : PropTypes.bool
 	}
 
 	static defaultProps =
@@ -251,7 +253,10 @@ export default class Input extends Component
 		selectComponent : Select,
 
 		// `<ReactInput/>` from `input-format` is used by default
-		inputComponent : ReactInput
+		inputComponent : ReactInput,
+
+		// Show country prefix alongside country name in dropdown
+		showCountryPrefixes: false
 	}
 
 	state = {}
@@ -267,7 +272,8 @@ export default class Input extends Component
 			dictionary,
 			international,
 			internationalIcon,
-			flags
+			flags,
+			showCountryPrefixes
 		}
 		= this.props
 
@@ -323,10 +329,27 @@ export default class Input extends Component
 				using_custom_country_names = true
 			}
 
+			let label = dictionary[country_code] || default_dictionary[country_code]
+			// showCountryPrefixes only works with default country names
+			// It will add the country prefix between internation name and national name
+			if (!using_custom_country_names && showCountryPrefixes)
+			{
+				const prefix = `(+${getPhoneCode(country_code)})`
+				const splitted = label.split('(')
+				if (splitted.length > 1)
+				{
+					label = splitted.join(` ${prefix} (`)
+				}
+				else
+				{
+					label = `${label} ${prefix}`
+				}
+			}
+
 			this.select_options.push
 			({
 				value : country_code,
-				label : dictionary[country_code] || default_dictionary[country_code],
+				label,
 				icon  : get_country_option_icon(country_code, this.props)
 			})
 		}
@@ -939,6 +962,7 @@ export default class Input extends Component
 			internationalIcon,
 			convertToNational,
 			metadata,
+			showCountryPrefixes,
 			...input_props
 		}
 		= this.props
